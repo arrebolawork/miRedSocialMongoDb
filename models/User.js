@@ -5,7 +5,9 @@ const UserSchema = new mongoose.Schema(
     fullName: String,
     email: String,
     passToHash: String,
+    role: String,
     date: Date,
+    tokens: [],
   },
   { timestamps: true }
 );
