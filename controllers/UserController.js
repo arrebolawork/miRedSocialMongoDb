@@ -111,5 +111,39 @@ const UserController = {
       res.status(500).send({ message: error.message || "Ha habido un problema en la conexión" });
     }
   },
+  async getCurrentUser(req, res) {
+    try {
+      const token = req.header("Authorization")?.replace("Bearer ", "");
+      const decoded = jwt.verify(token, jwt_secret);
+      const userId = decoded._id;
+      const user = await User.findById(userId);
+      if (!user) return res.status(404).send({ message: "Usuario no encontrado!" });
+
+      res.status(200).json({
+        _id: user._id,
+        fullName: user.fullName,
+        email: user.email,
+        role: user.role,
+      });
+    } catch (error) {
+      res.status(500).send({ message: error.message || "Ha habido un problema en la conexión" });
+    }
+  },
+  async logout(req, res) {
+    try {
+      const token = req.header("Authorization")?.replace("Bearer ", "");
+      if (!token) return res.status(401).send({ message: "Error con el token" });
+
+      const user = await User.findOne({ tokens: token });
+      if (!user) return res.status(401).send({ message: "Usuario no encontrado" });
+
+      user.tokens = user.tokens.filter((t) => t !== token);
+      await user.save();
+
+      res.status(200).send({ message: "Logout exitoso" });
+    } catch (error) {
+      res.status(500).send({ message: error.message || "Error en logout" });
+    }
+  },
 };
 module.exports = UserController;

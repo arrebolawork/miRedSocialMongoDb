@@ -2,9 +2,18 @@ const mongoose = require("mongoose");
 
 const UserSchema = new mongoose.Schema(
   {
-    fullName: String,
-    email: String,
-    passToHash: String,
+    fullName: {
+      type: String,
+      required: [true, "Nombre completo es obligatorio"],
+    },
+    email: {
+      type: String,
+      required: [true, "El email es obligatorio"],
+    },
+    passToHash: {
+      type: String,
+      required: [true, "La contraseña es obligatorio"],
+    },
     role: String,
     date: Date,
     tokens: [],
