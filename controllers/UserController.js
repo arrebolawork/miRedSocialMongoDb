@@ -2,6 +2,7 @@ const User = require("../models/User");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const { jwt_secret } = require("../config/keys");
+const transporter = require("../config/nodemailer");
 
 const UserController = {
   async create(req, res) {
@@ -20,9 +21,21 @@ const UserController = {
         ...req.body,
         passToHash: newPass,
         role: req.body.email === "david@arrebola.com" ? "admin" : "user",
+        confirmacion: false,
         date: new Date(),
       });
-      res.status(201).send(user);
+      const emailToken = jwt.sign({ email: req.body.email }, jwt_secret, { expiresIn: "48h" });
+      const url = "http://localhost:3000/users/confirm/" + emailToken;
+
+      await transporter.sendMail({
+        to: req.body.email,
+        subject: "Confirme su registro",
+        html: `
+         <h3>Bienvenido, estás a un paso de registrarte </h3>
+         <a href=${url}> Click para confirmar tu registro</a>
+       `,
+      });
+      res.status(201).send({ message: "confirma registro en tu correo", user });
     } catch (error) {
       console.error(error);
       res.status(500).send({ message: error.message || "Ha habido un problema en la conexión" });
@@ -36,6 +49,10 @@ const UserController = {
       if (!user) return res.status(401).send({ message: "Error de identificación" });
       const match = await bcrypt.compare(req.body.passToHash, user.passToHash);
       if (!match) return res.status(401).send({ message: "Error de identificación" });
+      if (!user.confirmacion) {
+        return res.status(400).send({ message: "Debes confirmar tu correo" });
+      }
+
       const token = jwt.sign({ _id: user._id }, jwt_secret);
       if (user.tokens.length > 2) user.tokens.shift();
       user.tokens.push(token);
@@ -143,6 +160,33 @@ const UserController = {
       res.status(200).send({ message: "Logout exitoso" });
     } catch (error) {
       res.status(500).send({ message: error.message || "Error en logout" });
+    }
+  },
+  async confirm(req, res) {
+    try {
+      const token = req.params.emailToken;
+
+      let payload;
+      try {
+        payload = jwt.verify(token, jwt_secret);
+      } catch (err) {
+        return res.status(400).send("Token inválido o expirado");
+      }
+
+      if (!payload.email) {
+        return res.status(400).send("Token no contiene información válida");
+      }
+
+      const result = await User.findOneAndUpdate({ email: payload.email }, { confirmacion: true }, { new: true });
+
+      if (!result) {
+        return res.status(404).send("Usuario no encontrado");
+      }
+
+      res.status(200).send("Usuario confirmado con éxito");
+    } catch (error) {
+      console.error(error);
+      res.status(500).send("Error al confirmar el usuario");
     }
   },
 };
