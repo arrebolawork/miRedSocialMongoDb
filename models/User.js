@@ -17,6 +17,7 @@ const UserSchema = new mongoose.Schema(
     role: String,
     date: Date,
     tokens: [],
+    confirmacion: Boolean,
   },
   { timestamps: true }
 );

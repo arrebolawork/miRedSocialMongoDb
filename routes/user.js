@@ -5,6 +5,7 @@ const { authentication } = require("../middlewares/authentication");
 
 router.post("/login", UserController.login);
 router.post("/register", UserController.create);
+router.get("/confirm/:emailToken", UserController.confirm);
 router.get("/getAllUsers", authentication, UserController.getAllUsers);
 router.get("/user/me", authentication, UserController.getCurrentUser);
 router.get("/user/:_id", authentication, UserController.getUserById);
