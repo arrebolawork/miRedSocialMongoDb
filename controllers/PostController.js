@@ -37,7 +37,10 @@ const PostController = {
   },
   async getAllPosts(req, res) {
     try {
-      const posts = await Post.find();
+      const { page = 1, limit = 10 } = req.query;
+      const posts = await Post.find()
+        .limit(limit)
+        .skip((page - 1) * limit);
 
       const postsList = await Promise.all(
         posts.map(async (post) => {
@@ -45,7 +48,7 @@ const PostController = {
           return {
             _id: post._id,
             titulo: post.titulo,
-            autor: autor ? autor.fullName : "Usuario eliminado",
+            autor: autor ? autor.fullName : "Nombre no disponible",
             date: post.date,
             like: post.like.length - 1,
           };
@@ -115,7 +118,7 @@ const PostController = {
       post.like.push(userId);
       await post.save();
 
-      res.status(200).send({ message: "Like registrado", likes: post.like.length });
+      res.status(200).send({ message: "Like registrado", likes: post.like.length - 1 });
     } catch (error) {
       console.error(error);
       res.status(500).send({ message: error.message || "Ha habido un problema en la conexión" });
