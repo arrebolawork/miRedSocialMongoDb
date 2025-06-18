@@ -170,7 +170,7 @@ const UserController = {
       try {
         payload = jwt.verify(token, jwt_secret);
       } catch (err) {
-        return res.status(400).send("Token inválido o expirado");
+        return res.status(400).send("Token inválido o expirado", { error: err });
       }
 
       if (!payload.email) {
