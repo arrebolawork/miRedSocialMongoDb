@@ -1,7 +1,7 @@
 const User = require("../models/User");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-const { jwt_secret } = require("../config/keys");
+const { jwt_secret, isAdmin } = require("../config/keys");
 const transporter = require("../config/nodemailer");
 
 const UserController = {
@@ -20,7 +20,7 @@ const UserController = {
       const user = await User.create({
         ...req.body,
         passToHash: newPass,
-        role: req.body.email === "david@arrebola.com" ? "admin" : "user",
+        role: req.body.email === isAdmin ? "admin" : "user",
         confirmacion: false,
         date: new Date(),
       });
