@@ -99,6 +99,23 @@ const PostController = {
       res.status(500).send({ message: error.message || "Ha habido un problema en la conexión" });
     }
   },
+  async delete(req, res) {
+    try {
+      const { _id } = req.params;
+      const token = req.header("Authorization")?.replace("Bearer ", "");
+      if (!token) return res.status(401).send({ message: "Token no proporcionado" });
+      const result = await Post.deleteOne({ _id });
+
+      if (result.deletedCount === 0) {
+        return res.status(404).send({ message: "Post no encontrado" });
+      }
+
+      res.status(200).send({ message: "Post eliminado exitosamente" });
+    } catch (error) {
+      console.error(error);
+      res.status(500).send({ message: error.message || "Ha habido un problema en la conexión" });
+    }
+  },
   async like(req, res) {
     try {
       const { _id } = req.params;
