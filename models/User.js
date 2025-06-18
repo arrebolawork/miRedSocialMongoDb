@@ -8,6 +8,8 @@ const UserSchema = new mongoose.Schema(
     },
     email: {
       type: String,
+      match: [/.+\@.+\..+/, "Este correo no es válido"],
+      unique: true,
       required: [true, "El email es obligatorio"],
     },
     passToHash: {
