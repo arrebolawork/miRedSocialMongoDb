@@ -1,5 +1,5 @@
 const Comentario = require("../models/Comentario");
-
+require("dotenv").config();
 const ComentarioController = {
   async create(req, res) {
     try {
@@ -8,7 +8,7 @@ const ComentarioController = {
       const token = req.header("Authorization")?.replace("Bearer ", "");
       if (!token) return res.status(401).send({ message: "Token no proporcionado" });
 
-      const decoded = jwt.verify(token, jwt_secret);
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
       const userId = decoded._id;
 
       if (!contenido) {
