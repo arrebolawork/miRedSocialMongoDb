@@ -1,0 +1,22 @@
+services:
+  api:
+    container_name: api
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    volumes:
+      - ./:/root/src
+    healthcheck:
+      disable: true
+    restart: unless-stopped
+    ports:
+      - 3000:3000
+    tty: true
+  db:
+    image: mongo:latest
+    ports:
+      - 27017:27017
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${USERPASS}
+      MONGO_INITDB_DATABASE: ${DATABASE}

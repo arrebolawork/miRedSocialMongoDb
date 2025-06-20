@@ -1,7 +1,7 @@
 const Post = require("../models/Post");
 const User = require("../models/User");
 const jwt = require("jsonwebtoken");
-const { jwt_secret } = require("../config/keys");
+require("dotenv").config();
 
 const PostController = {
   async create(req, res) {
@@ -15,7 +15,7 @@ const PostController = {
       if (!token) {
         return res.status(401).send({ message: "Token no proporcionado" });
       }
-      const decoded = jwt.verify(token, jwt_secret);
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
       const userId = decoded._id;
 
       const newPost = {
@@ -122,7 +122,7 @@ const PostController = {
       const token = req.header("Authorization")?.replace("Bearer ", "");
       if (!token) return res.status(401).send({ message: "Token no proporcionado" });
 
-      const decoded = jwt.verify(token, jwt_secret);
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
       const userId = decoded._id;
 
       const post = await Post.findById(_id);
@@ -147,7 +147,7 @@ const PostController = {
       const token = req.header("Authorization")?.replace("Bearer ", "");
       if (!token) return res.status(401).send({ message: "Token no proporcionado" });
 
-      const decoded = jwt.verify(token, jwt_secret);
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
       const userId = decoded._id;
 
       const post = await Post.findById(_id);
