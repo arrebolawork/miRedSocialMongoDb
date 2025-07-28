@@ -48,6 +48,7 @@ const PostController = {
           return {
             _id: post._id,
             titulo: post.titulo,
+            contenido: post.contenido,
             autor: autor ? autor.fullName : "Nombre no disponible",
             date: post.date,
             like: post.like.length - 1,
