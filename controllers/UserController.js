@@ -25,7 +25,7 @@ const UserController = {
         date: new Date(),
       });
       const emailToken = jwt.sign({ email: req.body.email }, process.env.JWT_SECRET, { expiresIn: "48h" });
-      const url = "https://miredsocialmongodb.onrender.com/confirm" + emailToken;
+      const url = "https://miredsocialmongodb.onrender.com/confirm/" + emailToken;
 
       await transporter.sendMail({
         to: req.body.email,
