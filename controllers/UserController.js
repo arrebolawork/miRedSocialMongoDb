@@ -57,7 +57,7 @@ const UserController = {
       if (user.tokens.length > 2) user.tokens.shift();
       user.tokens.push(token);
       await user.save();
-      res.status(200).send({ message: "Bienvenid@ " + user.fullName, token });
+      res.status(200).send({ message: "Bienvenid@ ", fullName: user.fullName, token });
     } catch (error) {
       console.error(error, { message: "Error al conectar para hacer el Login" });
     }
