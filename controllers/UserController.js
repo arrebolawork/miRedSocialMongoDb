@@ -52,6 +52,9 @@ const UserController = {
       if (!user.confirmacion) {
         return res.status(400).send({ message: "Debes confirmar tu correo" });
       }
+      const token = jwt.sign({ _id: user._id }, process.env.JWT_SECRET, {
+        expiresIn: "7d",
+      });
       res.status(200).send({ message: "Bienvenid@ ", fullName: user.fullName, token });
     } catch (error) {
       console.error(error, { message: "Error al conectar para hacer el Login" });
