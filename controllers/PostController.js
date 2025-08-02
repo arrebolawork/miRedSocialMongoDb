@@ -52,6 +52,7 @@ const PostController = {
             autor: autor ? autor.fullName : "Nombre no disponible",
             date: post.date,
             like: post.like.length - 1,
+            image: post.image ? post.image : "137685",
           };
         })
       );
