@@ -27,4 +27,4 @@ const authentication = async (req, res, next) => {
     return res.status(401).send({ error, message: "Ha habido un problema con el token" });
   }
 };
-module.exports = { authentication };
+module.exports = authentication;
