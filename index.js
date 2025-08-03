@@ -4,7 +4,12 @@ require("dotenv").config();
 const PORT = process.env.PORT;
 const { dbConnection } = require("./config/config");
 const path = require("path");
-
+const cors = require("cors");
+app.use(
+  cors({
+    origin: "http://localhost:5173", // O reemplaza con tu dominio, ej: 'https://tufrontend.com'
+  })
+);
 app.use(express.json());
 dbConnection();
 
