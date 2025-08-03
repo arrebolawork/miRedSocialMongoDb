@@ -70,7 +70,7 @@ const PostController = {
     try {
       const userId = req.user._id;
 
-      const posts = await Post.find({ _id: userId }).populate("autor", "fullName email").sort({ createdAt: -1 });
+      const posts = await Post.find({ autor: userId }).populate("autor", "fullName email").sort({ createdAt: -1 });
 
       const postsList = posts.map((post) => ({
         _id: post._id,
