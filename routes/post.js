@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const PostController = require("../controllers/PostController");
 const ComentarioController = require("../controllers/ComentarioController");
-const authentication = require("../middlewares/authentication");
+const { authentication } = require("../middlewares/authentication");
 const upload = require("../middlewares/upload");
 
 router.get("/allPosts", PostController.getAllPosts);
