@@ -68,7 +68,7 @@ const PostController = {
   },
   async getPostsByUser(req, res) {
     try {
-      const { userId } = req.params;
+      const userId = req.User._id;
 
       const posts = await Post.find({ autor: userId }).populate("autor", "fullName email").sort({ createdAt: -1 });
 
