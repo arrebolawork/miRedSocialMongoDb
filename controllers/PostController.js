@@ -23,7 +23,7 @@ const PostController = {
         contenido,
         autor: userId,
         date: new Date(),
-        like: [].length,
+        like: [],
         image: req.file ? `/uploads/${req.file.filename}` : null,
       };
 
