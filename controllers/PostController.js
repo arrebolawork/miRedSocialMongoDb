@@ -37,30 +37,62 @@ const PostController = {
   },
   async getAllPosts(req, res) {
     try {
-      const { page = 1, limit = 10 } = req.query;
-      const posts = await Post.find()
-        .limit(limit)
-        .skip((page - 1) * limit);
+      const page = parseInt(req.query.page) || 1;
+      const limit = parseInt(req.query.limit) || 10;
+      const skip = (page - 1) * limit;
+      const totalPosts = await Post.countDocuments();
 
-      const postsList = await Promise.all(
-        posts.map(async (post) => {
-          const autor = await User.findById(post.autor);
-          return {
-            _id: post._id,
-            titulo: post.titulo,
-            contenido: post.contenido,
-            autor: autor ? autor.fullName : "Nombre no disponible",
-            date: post.date,
-            like: post.like.length - 1,
-            image: post.image ? post.image : "137685",
-          };
-        })
-      );
-      res.status(200).send(postsList);
+      const posts = await Post.find().populate("autor", "fullName email").sort({ createdAt: -1 }).limit(limit).skip(skip);
+
+      const postsList = posts.map((post) => ({
+        _id: post._id,
+        titulo: post.titulo,
+        contenido: post.contenido,
+        autor: post.autor ? post.autor.fullName : "Nombre no disponible",
+        date: post.createdAt,
+        like: post.like.length,
+        image: post.image || "No hay imagen",
+      }));
+
+      res.status(200).send({
+        posts: postsList,
+        currentPage: page,
+        totalPages: Math.ceil(totalPosts / limit),
+        totalPosts,
+      });
     } catch (error) {
-      res.status(500).send({ message: error.message || "Ha habido un problema en la conexión" });
+      res.status(500).send({
+        message: error.message || "Ha habido un problema en la conexión",
+      });
     }
   },
+  async getPostsByUser(req, res) {
+    try {
+      const { userId } = req.params;
+
+      const posts = await Post.find({ autor: userId }).populate("autor", "fullName email").sort({ createdAt: -1 });
+
+      const postsList = posts.map((post) => ({
+        _id: post._id,
+        titulo: post.titulo,
+        contenido: post.contenido,
+        autor: post.autor?.fullName || "Nombre no disponible",
+        date: post.createdAt,
+        like: post.like.length,
+        image: post.image || "No hay imagen",
+      }));
+
+      res.status(200).send({
+        posts: postsList,
+        totalPosts: postsList.length,
+      });
+    } catch (error) {
+      res.status(500).send({
+        message: error.message || "Error al obtener los posts del usuario",
+      });
+    }
+  },
+
   async getPostById(req, res) {
     try {
       const { _id } = req.params;
