@@ -14,5 +14,6 @@ router.post("/comentario/:postId", authentication, ComentarioController.create);
 router.put("/id/:_id", authentication, PostController.update);
 router.post("/like/:_id", authentication, PostController.like);
 router.post("/unlike/:_id", authentication, PostController.unLike);
+router.delete("/id/:_id", authentication, PostController.delete);
 
 module.exports = router;
