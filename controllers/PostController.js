@@ -118,7 +118,7 @@ const PostController = {
     try {
       const { _id } = req.params;
       const toUpdate = { ...req.body, date: new Date() };
-      const post = await Post.findByIdAndUpdate(_id, toUpdate, { new: true });
+      const post = await Post.findByIdAndUpdate(_id, { $set: toUpdate }, { new: true });
       if (!post) return res.status(404).send({ message: "Post no encontrado!" });
       res.status(200).json({
         message: "Post actualizado correctamente",
@@ -133,6 +133,7 @@ const PostController = {
       res.status(500).send({ message: error.message || "Ha habido un problema en la conexión" });
     }
   },
+
   async delete(req, res) {
     try {
       const { _id } = req.params;
