@@ -195,7 +195,7 @@ const PostController = {
       post.like.splice(index, 1);
       await post.save();
 
-      res.status(200).send({ message: "Like eliminado", likes: post.like.length });
+      res.status(200).send({ message: "Like eliminado", post });
     } catch (error) {
       console.error(error);
       res.status(500).send({ message: error.message || "Ha habido un problema en la conexión" });
