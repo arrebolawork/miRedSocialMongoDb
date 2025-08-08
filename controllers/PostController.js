@@ -169,7 +169,7 @@ const PostController = {
       post.like.push(userId);
       await post.save();
 
-      res.status(200).send({ message: "Like registrado", likes: post.like.length - 1 });
+      res.status(200).send({ message: "Like registrado", post });
     } catch (error) {
       console.error(error);
       res.status(500).send({ message: error.message || "Ha habido un problema en la conexión" });
