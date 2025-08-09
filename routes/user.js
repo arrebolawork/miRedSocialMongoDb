@@ -2,9 +2,10 @@ const express = require("express");
 const router = express.Router();
 const UserController = require("../controllers/UserController");
 const { authentication } = require("../middlewares/authentication");
+const upload = require("../middlewares/upload");
 
 router.post("/login", UserController.login);
-router.post("/register", UserController.create);
+router.post("/register", upload.single("profileImage"), UserController.create);
 router.get("/confirm/:emailToken", UserController.confirm);
 router.get("/getAllUsers", authentication, UserController.getAllUsers);
 router.get("/user/me", authentication, UserController.getCurrentUser);
