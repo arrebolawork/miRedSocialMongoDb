@@ -11,7 +11,7 @@ router.get("/getAllUsers", authentication, UserController.getAllUsers);
 router.get("/user/me", authentication, UserController.getCurrentUser);
 router.get("/user/:_id", authentication, UserController.getUserById);
 router.put("/user/:_id", authentication, UserController.update);
-router.put("/me", authentication, UserController.updateCurrentUser);
+router.put("/me", upload.single("image"), authentication, UserController.updateCurrentUser);
 router.delete("/user/:_id", authentication, UserController.delete);
 router.delete("/logout", authentication, UserController.logout);
 

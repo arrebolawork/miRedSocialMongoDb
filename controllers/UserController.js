@@ -216,6 +216,7 @@ const UserController = {
           fullName: user.fullName,
           email: user.email,
           role: user.role,
+          profileImage: user.profileImage,
         },
       });
     } catch (error) {
