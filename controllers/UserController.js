@@ -56,7 +56,7 @@ const UserController = {
       const token = jwt.sign({ _id: user._id }, process.env.JWT_SECRET, {
         expiresIn: "7d",
       });
-      res.status(200).send({ message: "Bienvenid@ ", fullName: user.fullName, token });
+      res.status(200).send({ message: "Bienvenid@ ", fullName: user.fullName, profileImage: user.profileImage, token });
     } catch (error) {
       console.error(error, { message: "Error al conectar para hacer el Login" });
     }
