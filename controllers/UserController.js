@@ -181,5 +181,45 @@ const UserController = {
       res.status(500).send("Error al confirmar el usuario");
     }
   },
+  async updateCurrentUser(req, res) {
+    try {
+      const token = req.header("Authorization")?.replace("Bearer ", "");
+      if (!token) {
+        return res.status(401).send({ message: "Token no proporcionado" });
+      }
+
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      const userId = decoded._id;
+
+      // Evitar cambios peligrosos
+      const toUpdate = { ...req.body, date: new Date() };
+      delete toUpdate.passToHash;
+      delete toUpdate.role;
+      delete toUpdate.tokens;
+
+      // Evitar duplicar email
+      if (toUpdate.email) {
+        const existingUser = await User.findOne({ email: toUpdate.email, _id: { $ne: userId } });
+        if (existingUser) {
+          return res.status(409).send({ message: "El email ya está registrado" });
+        }
+      }
+
+      const user = await User.findByIdAndUpdate(userId, toUpdate, { new: true });
+      if (!user) return res.status(404).send({ message: "Usuario no encontrado" });
+
+      res.status(200).json({
+        message: "Usuario actualizado correctamente",
+        user: {
+          _id: user._id,
+          fullName: user.fullName,
+          email: user.email,
+          role: user.role,
+        },
+      });
+    } catch (error) {
+      res.status(500).send({ message: error.message || "Ha habido un problema en la conexión" });
+    }
+  },
 };
 module.exports = UserController;
