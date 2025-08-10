@@ -198,7 +198,10 @@ const UserController = {
       delete toUpdate.passToHash;
       delete toUpdate.role;
       delete toUpdate.tokens;
-
+      // Si viene archivo, guardar su ruta
+      if (req.file) {
+        toUpdate.profileImage = `/uploads/${req.file.filename}`;
+      }
       // Evitar duplicar email
       if (toUpdate.email) {
         const existingUser = await User.findOne({ email: toUpdate.email, _id: { $ne: userId } });
