@@ -140,6 +140,7 @@ const UserController = {
         fullName: user.fullName,
         email: user.email,
         role: user.role,
+        profileImage: user.profileImage,
       });
     } catch (error) {
       res.status(500).send({ message: error.message || "Ha habido un problema en la conexión" });
