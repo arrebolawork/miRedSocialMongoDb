@@ -17,7 +17,6 @@ app.use(
 );
 app.use(express.json());
 dbConnection();
-const __dirname = path.resolve();
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 app.use("/users", require("./routes/user"));
 app.use("/posts", require("./routes/post"));
