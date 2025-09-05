@@ -41,7 +41,7 @@ const frontendPath = path.join(__dirname, "public", "dist");
 app.use(express.static(frontendPath));
 
 // Catch-all para rutas del frontend
-app.get("*", (req, res) => {
+app.get("/app/*", (req, res) => {
   res.sendFile(path.join(frontendPath, "index.html"));
 });
 
