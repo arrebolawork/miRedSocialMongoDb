@@ -107,7 +107,7 @@ const PostController = {
     try {
       const { titulo } = req.params;
       const postList = await Post.find();
-      const postFiltered = postList.filter((post) => post.titulo.conteins(titulo));
+      const postFiltered = postList.filter((post) => post.titulo.includes(titulo));
       if (postFiltered.length <= 0) return res.status(404).send({ message: "Post no encontrado!" });
       res.status(200).send(postFiltered);
     } catch (error) {
