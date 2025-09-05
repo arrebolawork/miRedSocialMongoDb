@@ -1,39 +1,28 @@
-import express from "express";
-import fs from "fs";
-import path from "path";
-import cors from "cors";
-import dotenv from "dotenv";
-
-import { dbConnection } from "./config/config.js"; // asegúrate del .js
-
-dotenv.config();
-
+const express = require("express");
+const fs = require("fs");
 const app = express();
+require("dotenv").config();
 const PORT = process.env.PORT || 3000;
-
-// Carpeta uploads
-const uploadsPath = path.join(process.cwd(), "uploads");
-if (!fs.existsSync(uploadsPath)) fs.mkdirSync(uploadsPath);
-
-// CORS
-app.use(cors({ origin: process.env.FRONTEND_URL || "*" }));
+const { dbConnection } = require("./config/config");
+const path = require("path");
+const cors = require("cors");
+const uploadsPath = path.join(__dirname, "uploads");
+if (!fs.existsSync(uploadsPath)) {
+  fs.mkdirSync(uploadsPath);
+}
+app.use(
+  cors({
+    origin: process.env.FRONTEND_URL || "*", // O reemplaza con tu dominio, ej: 'https://tufrontend.com'aqui tenia el localhosr
+  })
+);
 app.use(express.json());
-
-// DB
 dbConnection();
-
-// Rutas
-import userRoutes from "./routes/user.js";
-import postRoutes from "./routes/post.js";
-
-app.use("/uploads", express.static(uploadsPath));
-app.use("/users", userRoutes);
-app.use("/posts", postRoutes);
-
-// Frontend
-app.use(express.static(path.join(process.cwd(), "public", "dist")));
+const __dirname = path.resolve();
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+app.use("/users", require("./routes/user"));
+app.use("/posts", require("./routes/post"));
+app.use(express.static(path.join(__dirname, "public", "dist"))); //esto no estaba
 app.get("*", (req, res) => {
-  res.sendFile(path.join(process.cwd(), "public", "dist", "index.html"));
+  res.sendFile(path.join(__dirname, "public", "dist", "index.html"));
 });
-
 app.listen(PORT, () => console.log(`Server started at port ${PORT}`));
