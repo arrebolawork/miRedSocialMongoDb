@@ -38,7 +38,8 @@ const UserController = {
       });
       res.status(201).send({ message: "confirma registro en tu correo", user });
     } catch (error) {
-      console.error(error);
+      console.error("Error en create user:", error); // muestra mensaje general
+      console.error("Error completo:", JSON.stringify(error, Object.getOwnPropertyNames(error), 2));
       res.status(500).send({ message: error.message || "Ha habido un problema en la conexión" });
     }
   },
