@@ -1,30 +1,43 @@
-const User = require("../models/User");
 const jwt = require("jsonwebtoken");
-require("dotenv").config();
+const User = require("../models/User");
 
 const authentication = async (req, res, next) => {
   try {
-    const authHeader = req.headers.authorization;
+    console.log("=== MIDDLEWARE AUTHENTICATION ===");
+    console.log("Headers recibidos:", req.headers);
 
-    if (!authHeader) {
-      return res.status(401).send({ message: "No token proporcionado" });
+    const token = req.header("Authorization")?.replace("Bearer ", "");
+
+    if (!token) {
+      console.log("❌ No se encontró token");
+      return res.status(401).send({ message: "Acceso denegado, token requerido" });
     }
 
-    const token = authHeader.replace(/^Bearer\s/, "");
+    console.log("✅ Token encontrado:", token.substring(0, 20) + "...");
 
-    const payload = jwt.verify(token, process.env.JWT_SECRET);
+    try {
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      console.log("✅ Token decodificado correctamente:", decoded);
 
-    const user = await User.findById(payload._id);
+      // Verificar que el usuario existe
+      const user = await User.findById(decoded._id);
+      if (!user) {
+        console.log("❌ Usuario no encontrado en BD");
+        return res.status(401).send({ message: "Token inválido" });
+      }
 
-    if (!user) {
-      return res.status(401).send({ message: "No estás autorizado" });
+      console.log("✅ Usuario autenticado:", user.email);
+      req.userId = decoded._id;
+      req.user = user;
+      next();
+    } catch (jwtError) {
+      console.log("❌ Error al verificar token:", jwtError.message);
+      return res.status(401).send({ message: "Token inválido" });
     }
-
-    req.user = user;
-    next();
   } catch (error) {
-    console.error(error);
-    return res.status(401).send({ error, message: "Ha habido un problema con el token" });
+    console.error("💥 Error en middleware authentication:", error);
+    res.status(500).send({ message: "Error del servidor en autenticación" });
   }
 };
+
 module.exports = { authentication };

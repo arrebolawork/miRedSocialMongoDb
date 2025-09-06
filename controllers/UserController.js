@@ -188,33 +188,90 @@ const UserController = {
   },
   async updateCurrentUser(req, res) {
     try {
+      console.log("=== INICIO updateCurrentUser ===");
+      console.log("Headers:", req.headers);
+      console.log("Body:", req.body);
+      console.log("File:", req.file);
+
       const token = req.header("Authorization")?.replace("Bearer ", "");
       if (!token) {
+        console.log("❌ Token no proporcionado");
         return res.status(401).send({ message: "Token no proporcionado" });
       }
 
-      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      console.log("✅ Token encontrado:", token.substring(0, 20) + "...");
+
+      let decoded;
+      try {
+        decoded = jwt.verify(token, process.env.JWT_SECRET);
+        console.log("✅ Token decodificado:", decoded);
+      } catch (jwtError) {
+        console.log("❌ Error al decodificar token:", jwtError.message);
+        return res.status(401).send({ message: "Token inválido" });
+      }
+
       const userId = decoded._id;
+      console.log("✅ UserId extraído:", userId);
+
+      // Verificar que el usuario existe
+      const existingUserCheck = await User.findById(userId);
+      if (!existingUserCheck) {
+        console.log("❌ Usuario no encontrado con ID:", userId);
+        return res.status(404).send({ message: "Usuario no encontrado" });
+      }
+
+      console.log("✅ Usuario encontrado:", existingUserCheck.email);
 
       // Evitar cambios peligrosos
       const toUpdate = { ...req.body, date: new Date() };
       delete toUpdate.passToHash;
       delete toUpdate.role;
       delete toUpdate.tokens;
-      // Si viene archivo, guardar su ruta
+
+      console.log("📝 Datos a actualizar (sin imagen):", toUpdate);
+
+      // Si viene archivo, guardar su URL de Cloudinary
       if (req.file) {
+        console.log("📎 Archivo recibido:", {
+          originalname: req.file.originalname,
+          url: req.file.url,
+          public_id: req.file.public_id,
+        });
         toUpdate.profileImage = req.file.url;
       }
+
       // Evitar duplicar email
-      if (toUpdate.email) {
-        const existingUser = await User.findOne({ email: toUpdate.email, _id: { $ne: userId } });
+      if (toUpdate.email && toUpdate.email !== existingUserCheck.email) {
+        console.log("🔍 Verificando duplicidad de email:", toUpdate.email);
+        const existingUser = await User.findOne({
+          email: toUpdate.email,
+          _id: { $ne: userId },
+        });
         if (existingUser) {
+          console.log("❌ Email ya registrado por otro usuario");
           return res.status(409).send({ message: "El email ya está registrado" });
         }
+        console.log("✅ Email disponible");
       }
 
-      const user = await User.findByIdAndUpdate(userId, toUpdate, { new: true });
-      if (!user) return res.status(404).send({ message: "Usuario no encontrado" });
+      console.log("📝 Datos finales a actualizar:", toUpdate);
+
+      const user = await User.findByIdAndUpdate(userId, toUpdate, {
+        new: true,
+        runValidators: true, // Ejecutar validaciones del schema
+      });
+
+      if (!user) {
+        console.log("❌ Usuario no encontrado después de actualizar");
+        return res.status(404).send({ message: "Usuario no encontrado" });
+      }
+
+      console.log("✅ Usuario actualizado exitosamente:", {
+        id: user._id,
+        email: user.email,
+        fullName: user.fullName,
+        profileImage: user.profileImage,
+      });
 
       res.status(200).json({
         message: "Usuario actualizado correctamente",
@@ -227,7 +284,32 @@ const UserController = {
         },
       });
     } catch (error) {
-      res.status(500).send({ message: error.message || "Ha habido un problema en la conexión" });
+      console.error("💥 ERROR COMPLETO en updateCurrentUser:");
+      console.error("Error name:", error.name);
+      console.error("Error message:", error.message);
+      console.error("Error stack:", error.stack);
+
+      // Si es un error de validación de Mongoose
+      if (error.name === "ValidationError") {
+        return res.status(400).json({
+          message: "Error de validación",
+          errors: Object.keys(error.errors).map((key) => ({
+            field: key,
+            message: error.errors[key].message,
+          })),
+        });
+      }
+
+      // Si es error de JWT
+      if (error.name === "JsonWebTokenError") {
+        return res.status(401).json({ message: "Token inválido" });
+      }
+
+      // Error genérico
+      res.status(500).json({
+        message: "Error interno del servidor",
+        error: process.env.NODE_ENV === "development" ? error.message : "Ha habido un problema en la conexión",
+      });
     }
   },
 };
