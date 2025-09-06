@@ -189,107 +189,84 @@ const UserController = {
   async updateCurrentUser(req, res) {
     try {
       console.log("=== INICIO updateCurrentUser ===");
-      console.log("Headers:", req.headers);
-      console.log("Body:", req.body);
-      console.log("File:", req.file);
+      console.log("req.user (desde middleware auth):", req.user ? req.user.email : "No disponible");
+      console.log("req.userId:", req.userId);
+      console.log("req.body:", req.body);
+      console.log(
+        "req.file:",
+        req.file
+          ? {
+              originalname: req.file.originalname,
+              url: req.file.url,
+              size: req.file.size,
+            }
+          : "Sin archivo"
+      );
 
-      const token = req.header("Authorization")?.replace("Bearer ", "");
-      if (!token) {
-        console.log("❌ Token no proporcionado");
-        return res.status(401).send({ message: "Token no proporcionado" });
+      // Ya no necesitamos verificar token porque el middleware authentication lo hace
+      const userId = req.userId;
+
+      if (!userId) {
+        console.log("Error: userId no disponible");
+        return res.status(401).json({ message: "Usuario no autenticado" });
       }
 
-      console.log("✅ Token encontrado:", token.substring(0, 20) + "...");
-
-      let decoded;
-      try {
-        decoded = jwt.verify(token, process.env.JWT_SECRET);
-        console.log("✅ Token decodificado:", decoded);
-      } catch (jwtError) {
-        console.log("❌ Error al decodificar token:", jwtError.message);
-        return res.status(401).send({ message: "Token inválido" });
-      }
-
-      const userId = decoded._id;
-      console.log("✅ UserId extraído:", userId);
-
-      // Verificar que el usuario existe
-      const existingUserCheck = await User.findById(userId);
-      if (!existingUserCheck) {
-        console.log("❌ Usuario no encontrado con ID:", userId);
-        return res.status(404).send({ message: "Usuario no encontrado" });
-      }
-
-      console.log("✅ Usuario encontrado:", existingUserCheck.email);
-
-      // Evitar cambios peligrosos
+      // Preparar datos para actualizar
       const toUpdate = { ...req.body, date: new Date() };
       delete toUpdate.passToHash;
       delete toUpdate.role;
       delete toUpdate.tokens;
 
-      console.log("📝 Datos a actualizar (sin imagen):", toUpdate);
+      console.log("Datos base a actualizar:", toUpdate);
 
-      // Si viene archivo, guardar su URL de Cloudinary
-      if (req.file) {
-        console.log("📎 Archivo recibido:", {
-          originalname: req.file.originalname,
-          url: req.file.url,
-          public_id: req.file.public_id,
-        });
+      // Si hay archivo, agregar la URL de Cloudinary
+      if (req.file && req.file.url) {
         toUpdate.profileImage = req.file.url;
+        console.log("Imagen a actualizar:", req.file.url);
       }
 
-      // Evitar duplicar email
-      if (toUpdate.email && toUpdate.email !== existingUserCheck.email) {
-        console.log("🔍 Verificando duplicidad de email:", toUpdate.email);
+      // Verificar duplicidad de email si se está cambiando
+      if (toUpdate.email && toUpdate.email !== req.user.email) {
+        console.log("Verificando duplicidad de email:", toUpdate.email);
         const existingUser = await User.findOne({
           email: toUpdate.email,
           _id: { $ne: userId },
         });
+
         if (existingUser) {
-          console.log("❌ Email ya registrado por otro usuario");
-          return res.status(409).send({ message: "El email ya está registrado" });
+          console.log("Email ya existe");
+          return res.status(409).json({ message: "El email ya está registrado" });
         }
-        console.log("✅ Email disponible");
       }
 
-      console.log("📝 Datos finales a actualizar:", toUpdate);
+      console.log("Actualizando usuario con:", toUpdate);
 
-      const user = await User.findByIdAndUpdate(userId, toUpdate, {
-        new: true,
-        runValidators: true, // Ejecutar validaciones del schema
-      });
+      // Actualizar usuario
+      const updatedUser = await User.findByIdAndUpdate(userId, toUpdate, { new: true, runValidators: true });
 
-      if (!user) {
-        console.log("❌ Usuario no encontrado después de actualizar");
-        return res.status(404).send({ message: "Usuario no encontrado" });
+      if (!updatedUser) {
+        console.log("Usuario no encontrado para actualizar");
+        return res.status(404).json({ message: "Usuario no encontrado" });
       }
 
-      console.log("✅ Usuario actualizado exitosamente:", {
-        id: user._id,
-        email: user.email,
-        fullName: user.fullName,
-        profileImage: user.profileImage,
-      });
+      console.log("Usuario actualizado exitosamente");
 
       res.status(200).json({
         message: "Usuario actualizado correctamente",
         user: {
-          _id: user._id,
-          fullName: user.fullName,
-          email: user.email,
-          role: user.role,
-          profileImage: user.profileImage,
+          _id: updatedUser._id,
+          fullName: updatedUser.fullName,
+          email: updatedUser.email,
+          role: updatedUser.role,
+          profileImage: updatedUser.profileImage,
         },
       });
     } catch (error) {
-      console.error("💥 ERROR COMPLETO en updateCurrentUser:");
-      console.error("Error name:", error.name);
-      console.error("Error message:", error.message);
-      console.error("Error stack:", error.stack);
+      console.error("ERROR en updateCurrentUser:");
+      console.error("Nombre:", error.name);
+      console.error("Mensaje:", error.message);
+      console.error("Stack:", error.stack);
 
-      // Si es un error de validación de Mongoose
       if (error.name === "ValidationError") {
         return res.status(400).json({
           message: "Error de validación",
@@ -300,15 +277,9 @@ const UserController = {
         });
       }
 
-      // Si es error de JWT
-      if (error.name === "JsonWebTokenError") {
-        return res.status(401).json({ message: "Token inválido" });
-      }
-
-      // Error genérico
       res.status(500).json({
         message: "Error interno del servidor",
-        error: process.env.NODE_ENV === "development" ? error.message : "Ha habido un problema en la conexión",
+        error: process.env.NODE_ENV === "development" ? error.message : undefined,
       });
     }
   },
