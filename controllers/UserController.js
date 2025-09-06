@@ -22,11 +22,13 @@ const UserController = {
         passToHash: newPass,
         role: req.body.email === process.env.IS_ADMIN ? "admin" : "user",
         confirmacion: false,
-        profileImage: req.file?.path ?? req.file?.filename ?? null,
+        profileImage: req.file?.url || null,
         date: new Date(),
       });
       const emailToken = jwt.sign({ email: req.body.email }, process.env.JWT_SECRET, { expiresIn: "48h" });
       const url = `https://miredsocialmongodb.onrender.com/api/users/confirm/${emailToken}`;
+      console.log("req.body:", req.body);
+      console.log("req.file:", req.file);
 
       await transporter.sendMail({
         to: req.body.email,
@@ -201,7 +203,7 @@ const UserController = {
       delete toUpdate.tokens;
       // Si viene archivo, guardar su ruta
       if (req.file) {
-        toUpdate.profileImage = `/uploads/${req.file.filename}`;
+        toUpdate.profileImage = req.file.url;
       }
       // Evitar duplicar email
       if (toUpdate.email) {
