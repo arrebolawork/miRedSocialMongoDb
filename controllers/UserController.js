@@ -22,7 +22,7 @@ const UserController = {
         passToHash: newPass,
         role: req.body.email === process.env.IS_ADMIN ? "admin" : "user",
         confirmacion: false,
-        profileImage: req.file ? req.file.path : null,
+        profileImage: req.file?.path ?? req.file?.filename ?? null,
         date: new Date(),
       });
       const emailToken = jwt.sign({ email: req.body.email }, process.env.JWT_SECRET, { expiresIn: "48h" });
