@@ -32,9 +32,9 @@ app.use(express.json());
 dbConnection();
 
 // --- Rutas de la API ---
-app.use("/uploads", express.static(uploadsPath));
-app.use("/users", userRoutes);
-app.use("/posts", postRoutes);
+app.use("/api/uploads", express.static(uploadsPath));
+app.use("/api/users", userRoutes);
+app.use("/api/posts", postRoutes);
 
 // --- Frontend estático ---
 const frontendPath = path.join(__dirname, "public", "dist");
