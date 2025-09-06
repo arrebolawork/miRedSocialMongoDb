@@ -46,40 +46,48 @@ const upload = multer({
   },
 });
 
-// Middleware personalizado que maneja errores
-const uploadMiddleware = (req, res, next) => {
-  console.log("=== INICIANDO UPLOAD MIDDLEWARE ===");
-  console.log("Content-Type:", req.headers["content-type"]);
+// Crear instancia de upload
+const uploadInstance = upload;
 
-  upload.single("image")(req, res, (err) => {
-    console.log("=== RESULTADO UPLOAD MIDDLEWARE ===");
+// Middleware personalizado para debugging
+const uploadWithLogs = (fieldName) => {
+  return (req, res, next) => {
+    console.log("=== INICIANDO UPLOAD MIDDLEWARE ===");
+    console.log("Content-Type:", req.headers["content-type"]);
+    console.log("Field name:", fieldName);
 
-    if (err) {
-      console.error("ERROR en upload:", err.message);
-      if (err instanceof multer.MulterError) {
-        if (err.code === "LIMIT_FILE_SIZE") {
-          return res.status(400).json({ message: "Archivo demasiado grande (máximo 5MB)" });
-        }
-      }
-      return res.status(400).json({ message: `Error de upload: ${err.message}` });
-    }
+    uploadInstance.single(fieldName)(req, res, (err) => {
+      console.log("=== RESULTADO UPLOAD MIDDLEWARE ===");
 
-    console.log("Upload exitoso:");
-    console.log(
-      "req.file:",
-      req.file
-        ? {
-            originalname: req.file.originalname,
-            url: req.file.url,
-            public_id: req.file.public_id,
-            size: req.file.size,
+      if (err) {
+        console.error("ERROR en upload:", err.message);
+        if (err instanceof multer.MulterError) {
+          if (err.code === "LIMIT_FILE_SIZE") {
+            return res.status(400).json({ message: "Archivo demasiado grande (máximo 5MB)" });
           }
-        : "No file uploaded"
-    );
-    console.log("req.body:", req.body);
+        }
+        return res.status(400).json({ message: `Error de upload: ${err.message}` });
+      }
 
-    next();
-  });
+      console.log("Upload exitoso:");
+      console.log(
+        "req.file:",
+        req.file
+          ? {
+              originalname: req.file.originalname,
+              url: req.file.url,
+              public_id: req.file.public_id,
+              size: req.file.size,
+            }
+          : "No file uploaded"
+      );
+      console.log("req.body:", req.body);
+
+      next();
+    });
+  };
 };
 
-module.exports = uploadMiddleware;
+// Exportar tanto la instancia como el middleware personalizado
+module.exports = uploadInstance;
+module.exports.withLogs = uploadWithLogs;

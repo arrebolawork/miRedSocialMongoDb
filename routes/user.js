@@ -6,7 +6,7 @@ const upload = require("../middlewares/upload");
 
 // Rutas sin autenticación
 router.post("/login", UserController.login);
-router.post("/register", upload, UserController.create);
+router.post("/register", upload.single("image"), UserController.create);
 router.get("/confirm/:emailToken", UserController.confirm);
 
 // Rutas con autenticación
