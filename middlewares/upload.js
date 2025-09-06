@@ -1,25 +1,27 @@
 const multer = require("multer");
-const path = require("path");
+const { CloudinaryStorage } = require("multer-storage-cloudinary");
+const cloudinary = require("cloudinary").v2;
 
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, "uploads/");
-  },
-  filename: function (req, file, cb) {
-    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
-    cb(null, uniqueSuffix + path.extname(file.originalname));
+// Configura Cloudinary con tus credenciales (guárdalas en Render -> Environment Variables)
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
+
+// Configuración de Multer con almacenamiento en Cloudinary
+const storage = new CloudinaryStorage({
+  cloudinary,
+  params: {
+    folder: "profiles", // Carpeta dentro de tu cuenta Cloudinary
+    allowed_formats: ["jpg", "jpeg", "png", "gif"],
+    public_id: (req, file) => {
+      // Nombre único para el archivo
+      return `${Date.now()}-${file.originalname.split(".")[0]}`;
+    },
   },
 });
 
-const fileFilter = (req, file, cb) => {
-  const ext = path.extname(file.originalname);
-  if ([".png", ".jpg", ".jpeg", ".gif"].includes(ext.toLowerCase())) {
-    cb(null, true);
-  } else {
-    cb(new Error("Solo se permiten imágenes"), false);
-  }
-};
-
-const upload = multer({ storage, fileFilter });
+const upload = multer({ storage });
 
 module.exports = upload;
