@@ -230,7 +230,16 @@ const UserController = {
       console.log("=== INICIO updateCurrentUser ===");
       console.log("Usuario autenticado:", req.user?.email || "No disponible");
       console.log("Datos recibidos:", req.body);
-      console.log("Archivo recibido:", req.file ? req.file.path : "Sin archivo");
+      console.log(
+        "Archivo recibido:",
+        req.file
+          ? {
+              originalname: req.file.originalname,
+              url: req.file.url,
+              size: req.file.size,
+            }
+          : "Sin archivo"
+      );
 
       const userId = req.userId;
       if (!userId) {
