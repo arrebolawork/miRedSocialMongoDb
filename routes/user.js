@@ -5,9 +5,6 @@ const { authentication } = require("../middlewares/authentication");
 const upload = require("../middlewares/upload");
 
 console.log("Cargando user routes...");
-console.log("upload type:", typeof upload);
-console.log("upload.single type:", typeof upload.single);
-console.log("authentication type:", typeof authentication);
 
 // Rutas sin autenticación
 router.post("/login", UserController.login);
@@ -22,7 +19,7 @@ router.put("/user/:_id", authentication, UserController.update);
 router.delete("/user/:_id", authentication, UserController.delete);
 router.delete("/logout", authentication, UserController.logout);
 
-// Middleware simple con logs inline
+// Middleware para uploads con logs
 const logUpload = (req, res, next) => {
   console.log("=== UPLOAD MIDDLEWARE ===");
   console.log("Content-Type:", req.headers["content-type"]);
@@ -39,15 +36,15 @@ const logUpload = (req, res, next) => {
     console.log("- Body:", req.body);
 
     if (req.file) {
-      console.log("- Cloudinary URL:", req.file.url);
+      console.log("- Cloudinary URL:", req.file.path); // 👈 corregido
     }
 
     next();
   });
 };
 
-// Ruta crítica simplificada
-router.put("/me", logUpload, authentication, UserController.updateCurrentUser);
+// Ruta crítica: primero autenticación, luego subida
+router.put("/me", authentication, logUpload, UserController.updateCurrentUser);
 
 console.log("User routes configuradas correctamente");
 

@@ -24,7 +24,13 @@ const storage = new CloudinaryStorage({
   params: {
     folder: "profiles",
     allowed_formats: ["jpg", "jpeg", "png", "gif"],
-    public_id: (req, file) => `${Date.now()}-${file.originalname.split(".")[0]}`,
+    public_id: (req, file) => {
+      const baseName = file.originalname
+        .split(".")[0]
+        .replace(/\s+/g, "_") // quita espacios
+        .replace(/[^a-zA-Z0-9_-]/g, ""); // limpia caracteres raros
+      return `${Date.now()}-${baseName}`;
+    },
   },
 });
 
@@ -36,7 +42,7 @@ const upload = multer({
   },
   fileFilter: (req, file, cb) => {
     console.log("=== MULTER FILE FILTER ===");
-    console.log("Archivo:", file.originalname, file.mimetype);
+    console.log("Archivo recibido:", file.originalname, "-", file.mimetype);
 
     if (file.mimetype.startsWith("image/")) {
       cb(null, true);
