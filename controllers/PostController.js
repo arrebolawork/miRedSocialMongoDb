@@ -22,7 +22,7 @@ const PostController = {
         autor: userId,
         date: new Date(),
         like: [],
-        image: req.file ? req.file.path : null, // ✅ Cloudinary URL
+        image: req.file?.path || req.file?.url || null, // ✅ Cloudinary URL
       };
 
       const savedPost = await Post.create(newPost);
