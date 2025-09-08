@@ -22,7 +22,7 @@ console.log("Cloudinary configurado:", {
 const storage = new CloudinaryStorage({
   cloudinary,
   params: {
-    folder: "profiles",
+    folder: "uploads",
     allowed_formats: ["jpg", "jpeg", "png", "gif"],
     public_id: (req, file) => {
       const baseName = file.originalname
